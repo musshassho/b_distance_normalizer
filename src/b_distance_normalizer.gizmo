@@ -1,0 +1,39 @@
+#! /opt/thefoundry/nuke/Nuke11.2v5/libnuke-11.2.5.so -nx
+version 11.2 v5
+Gizmo {
+ inputs 2
+ addUserKnob {20 User}
+ addUserKnob {26 wiki l > T "calculates and normalizes the distance between two 3d points\t"}
+ addUserKnob {26 ""}
+ addUserKnob {7 distance R 0 1000}
+ distance {{sqrt(pow(input0.translate.x-input1.translate.x,2)+pow(input0.translate.y-input1.translate.y,2)+pow(input0.translate.z-input1.translate.z,2))}}
+ addUserKnob {7 normalized_distance}
+ addUserKnob {26 ""}
+ addUserKnob {22 normalize_distance T "#IMPORTS\nimport random\nimport math\n\nNODEA =  nuke.thisNode().input(0)\nNODEB =  nuke.thisNode().input(1)\n\n#DEFINITIONS      \t\n\ndef calculate_distance_between_two_points(a,b):\n\n    distance = math.sqrt(math.pow(a\[0]-b\[0],2) + math.pow(a\[1]-b\[1],2) + math.pow(a\[2]-b\[2],2))\n\n    return distance  \n\n\ndef calculate_distances_iteratively(camera,axis):\n\n    first = int(nuke.Root().knob('first_frame').getValue())\n    last = int(nuke.Root().knob('last_frame').getValue())+1\n    frame = first\n    \n    distances = \[]\n    \n\n    while frame < last:\n        \n        translate_a = camera\['translate'].valueAt(frame)\n        translate_b = axis\['translate'].valueAt(frame)\n\n        temp_distance = calculate_distance_between_two_points(translate_a,translate_b)\n        distances.append(temp_distance)\n\n        frame += 1\n\n    return distances\n\n\ndef normalize_values(ls):\n    maxvalue = max(ls)\n    normalize_values = \[]\n    for i in ls:\n        temp = i / maxvalue\n        normalize_values.append(temp)\n\n    return normalize_values\n\ndef genereate_curve(ls):\n    first = int(nuke.Root().knob('first_frame').getValue())\n    last = int(nuke.Root().knob('last_frame').getValue())+1\n    frame = first\n    count = 0\n\n    while frame < last:\n\tnuke.thisNode()\['normalized_distance'].setAnimated()\n    \tnuke.thisNode()\['normalized_distance'].setValueAt(ls\[count],frame)\n    \tcount +=1\n    \tframe +=1\n\n\ndef main_function():\n\tif   NODEA == None:\n\t\tnuke.message(\"Please, conect a Camera and an Axis nodes to the corresponding inputs\")\n\t\treturn\n\telif NODEB == None:\n\t\tnuke.message(\"Please, conect a Camera and an Axis nodes to the corresponding inputs\")\n\t\treturn\n\telse:\t\n\t    genereate_curve(normalize_values(calculate_distances_iteratively(NODEA,NODEB)))\n\n\nmain_function()    \n\n\n\n\n\n\n\n\n" +STARTLINE}
+ addUserKnob {22 reset_curve -STARTLINE T "nuke.thisNode()\['normalized_distance'].setValue(0)\nnuke.thisNode()\['normalized_distance'].clearAnimated()"}
+ addUserKnob {26 ""}
+ addUserKnob {26 author l "" +STARTLINE T "bmc 2019"}
+}
+ Input {
+  inputs 0
+  name inputaxis
+  label "\[value number]"
+  xpos -10
+  ypos 66
+  number 1
+ }
+ Output {
+  inputs 0
+  name Output1
+  xpos -92
+  ypos 222
+ }
+ Input {
+  inputs 0
+  name inputcam
+  label "\[value number]"
+  selected true
+  xpos -203
+  ypos 65
+ }
+end_group
